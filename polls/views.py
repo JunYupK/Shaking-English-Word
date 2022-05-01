@@ -9,7 +9,8 @@ from django.utils import timezone
 from .forms import TextFrom
 from .models import EnglishWord
 from .naverAPI import get_translate
-
+from django.contrib.auth import authenticate, login, logout
+from .models import User
 # class IndexView(generic.ListView):
 #     template_name = 'polls/index.html'
 #     context_object_name = 'latest_question_list'
@@ -54,8 +55,40 @@ def main(request):
 
 def index(request):
     return render(request, 'polls/inputword.html')
-def login(request):
-    return render(request, 'polls/login.html')
+
+def Login(request):
+    if request.method == "POST":
+        username = request.POST.get('username', False)
+        password = request.POST.get('password', False)
+        user = authenticate(username = username, password = password)
+        if user is not None:
+            print("인증성공")
+            login(request, user)
+        else:
+            print("인증실패")
+    return render(request, 'polls/login2.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect("polls:Login")
+
+def signup_view(request):
+    if request.method =="POST":
+        print(request.POST)
+        username = request.POST["username"]
+        password = request.POST["password"]
+        firstname = request.POST["firstname"]
+        lastname = request.POST["lastname"]
+        email = request.POST["email"]
+        student_id = request.POST["student_id"]
+
+        user = User.objects.create_user(username, email, password)
+        user.last_name = lastname
+        user.first_name = firstname
+        user.student_id = student_id
+        user.save()
+        return redirect("polls:Login")
+    return render(request, "polls/signup.html")
 
 def Word(request):
     if request.method == 'POST':
